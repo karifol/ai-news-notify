@@ -1,0 +1,20 @@
+# SAM build output
+.aws-sam/
+
+# Deploy artifacts
+source.zip
+packaged.yaml
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store

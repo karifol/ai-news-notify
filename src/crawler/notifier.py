@@ -25,7 +25,8 @@ class Notifier:
             articles_by_source: Dict mapping source name to list of translated articles.
         """
         today = date.today().strftime("%Y年%m月%d日")
-        subject = f"【AI新着情報】{today}"
+        has_articles = any(articles_by_source.values())
+        subject = f"【AI新着情報】{today}" if has_articles else f"【AI新着情報】{today} - 新着なし"
         html_body = self._build_html(articles_by_source, today)
         text_body = self._build_text(articles_by_source, today)
 
@@ -45,7 +46,10 @@ class Notifier:
 
     def _build_html(self, articles_by_source: dict[str, list[Article]], today: str) -> str:
         """Build HTML email body."""
-        sections = ""
+        if not any(articles_by_source.values()):
+            sections = '<p style="color:#888;font-size:15px;">本日の新着記事はありませんでした。</p>'
+        else:
+            sections = ""
         for source, articles in articles_by_source.items():
             items = ""
             for a in articles:
@@ -84,6 +88,8 @@ class Notifier:
     def _build_text(self, articles_by_source: dict[str, list[Article]], today: str) -> str:
         """Build plain text fallback email body."""
         lines = [f"AI新着情報 - {today}", "=" * 40]
+        if not any(articles_by_source.values()):
+            lines.append("\n本日の新着記事はありませんでした。")
         for source, articles in articles_by_source.items():
             lines.append(f"\n【{source}】")
             for a in articles:

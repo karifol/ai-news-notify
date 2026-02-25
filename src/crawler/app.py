@@ -66,14 +66,10 @@ def handler(event: dict, context) -> dict:
 
     total_new = sum(len(v) for v in new_articles_by_source.values())
 
-    if new_articles_by_source:
-        try:
-            notifier.send(new_articles_by_source)
-        except Exception:
-            logger.exception("Failed to send email")
-
-    else:
-        logger.info("No new articles found — skipping email")
+    try:
+        notifier.send(new_articles_by_source)
+    except Exception:
+        logger.exception("Failed to send email")
 
     return {
         "statusCode": 200,
