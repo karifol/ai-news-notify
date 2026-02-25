@@ -1,0 +1,87 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Description: AI News Notify - Daily crawler for Anthropic, OpenAI, Google Gemini news
+
+Parameters:
+  FromEmail:
+    Type: String
+    Description: SES verified sender email address
+  ToEmail:
+    Type: String
+    Description: Recipient email address
+  ScheduleExpression:
+    Type: String
+    Default: cron(0 1 * * ? *)
+    Description: "Schedule in UTC (default: 10:00 JST daily)"
+
+Globals:
+  Function:
+    Runtime: python3.13
+    Timeout: 300
+    MemorySize: 256
+    Layers:
+      - !Ref DependenciesLayer
+    Environment:
+      Variables:
+        SEEN_ARTICLES_TABLE: !Ref SeenArticlesTable
+        FROM_EMAIL: !Ref FromEmail
+        TO_EMAIL: !Ref ToEmail
+        GEMINI_API_KEY_PARAM: /ai-news-notify/gemini-api-key
+
+Resources:
+  CrawlerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: ai-news-notify-crawler
+      CodeUri: src/crawler/
+      Handler: app.handler
+      Description: Crawl AI company news sites and send email digest
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref SeenArticlesTable
+        - SSMParameterReadPolicy:
+            ParameterName: ai-news-notify/gemini-api-key
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ses:SendEmail
+                - ses:SendRawEmail
+              Resource: '*'
+      Events:
+        DailySchedule:
+          Type: Schedule
+          Properties:
+            Schedule: !Ref ScheduleExpression
+            Enabled: true
+
+  DependenciesLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: ai-news-notify-dependencies
+      ContentUri: layers/dependencies/
+      CompatibleRuntimes:
+        - python3.13
+    Metadata:
+      BuildMethod: python3.13
+
+  SeenArticlesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ai-news-notify-seen-articles
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: url
+          AttributeType: S
+      KeySchema:
+        - AttributeName: url
+          KeyType: HASH
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+Outputs:
+  CrawlerFunctionArn:
+    Value: !GetAtt CrawlerFunction.Arn
+  SeenArticlesTableName:
+    Value: !Ref SeenArticlesTable
