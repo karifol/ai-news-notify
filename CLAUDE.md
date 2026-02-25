@@ -47,7 +47,7 @@ template.yaml   → Application infrastructure (Lambda + DynamoDB + EventBridge)
 buildspec.yaml  → CodeBuild: sam build → sam package → packaged.yaml artifact
 ```
 
-Lambda runs on a schedule (`cron(0 1 * * ? *)` = 10:00 JST) with a 300s timeout.
+Lambda runs on a schedule (`cron(0 22 * * ? *)` = 07:00 JST) with a 300s timeout.
 
 All Python dependencies (`requests`, `beautifulsoup4`, `google-genai`) are in a Lambda Layer defined in `layers/dependencies/requirements.txt`, not bundled with the function code.
 

@@ -13,7 +13,7 @@
                 <mxCell id="title-cicd" value="CI/CD パイプライン" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;fontStyle=1;fontSize=14;fontColor=#6c8ebf;" parent="1" vertex="1">
                     <mxGeometry x="30" y="25" width="260" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="title-runtime" value="毎日実行フロー (10:00 JST)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;fontStyle=1;fontSize=14;fontColor=#82b366;" parent="1" vertex="1">
+                <mxCell id="title-runtime" value="毎日実行フロー (07:00 JST)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;fontStyle=1;fontSize=14;fontColor=#82b366;" parent="1" vertex="1">
                     <mxGeometry x="30" y="265" width="320" height="30" as="geometry"/>
                 </mxCell>
                 <mxCell id="dev" value="開発者" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;strokeColor=none;fillColor=#232F3E;labelBackgroundColor=#ffffff;align=center;html=1;fontSize=11;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.user;verticalLabelPosition=bottom;verticalAlign=top;" parent="1" vertex="1">
@@ -49,7 +49,7 @@
                 <mxCell id="e-cfn-stack" value="deploy" style="edgeStyle=orthogonalEdgeStyle;rounded=0;fontSize=10;" parent="1" source="cfn" target="appstack" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="eventbridge" value="EventBridge&#xa;cron(0 1 * * ? *)" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;strokeColor=none;fillColor=#E7157B;labelBackgroundColor=#ffffff;align=center;html=1;fontSize=11;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.eventbridge;verticalLabelPosition=bottom;verticalAlign=top;" parent="1" vertex="1">
+                <mxCell id="eventbridge" value="EventBridge&#xa;cron(0 22 * * ? *)" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;strokeColor=none;fillColor=#E7157B;labelBackgroundColor=#ffffff;align=center;html=1;fontSize=11;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.eventbridge;verticalLabelPosition=bottom;verticalAlign=top;" parent="1" vertex="1">
                     <mxGeometry x="80" y="460" width="60" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="lambda" value="Lambda&#xa;ai-news-notify-crawler&#xa;Python 3.13 / 300s" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;strokeColor=none;fillColor=#FF9900;labelBackgroundColor=#ffffff;align=center;html=1;fontSize=11;fontStyle=1;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.lambda;verticalLabelPosition=bottom;verticalAlign=top;" parent="1" vertex="1">

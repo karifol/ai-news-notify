@@ -6,14 +6,7 @@ AWS Lambda で各サイトをクロールし、Gemini-2.5-flash で日本語に�
 
 ## アーキテクチャ
 
-```
-EventBridge (毎日 10:00 JST)
-    └── Lambda (Python 3.13)
-            ├── クロール (Anthropic RSS / OpenAI RSS / Google Gemini HTML)
-            ├── DynamoDB で既読フィルタリング (URL ベース、30日 TTL)
-            ├── Gemini-2.5-flash で日本語翻訳
-            └── SES でメール送信
-```
+![アーキテクチャ図](architecture.png)
 
 CI/CD は CodePipeline (S3 トリガー) → CodeBuild (SAM build/package) → CloudFormation デプロイ。
 

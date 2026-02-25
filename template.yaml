@@ -12,8 +12,8 @@ Parameters:
     Description: Recipient email address
   ScheduleExpression:
     Type: String
-    Default: cron(0 1 * * ? *)
-    Description: "Schedule in UTC (default: 10:00 JST daily)"
+    Default: cron(0 22 * * ? *)
+    Description: "Schedule in UTC (default: 07:00 JST daily)"
 
 Globals:
   Function:
