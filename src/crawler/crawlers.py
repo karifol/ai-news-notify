@@ -195,48 +195,55 @@ class OpenAICrawler(BaseCrawler):
 
 
 class GeminiCrawler(BaseCrawler):
-    """Crawler for https://gemini.google/jp/release-notes/?hl=ja"""
+    """Crawler for Google Gemini news via RSS, falling back to HTML."""
 
     source_name = "Google Gemini"
-    base_url = "https://gemini.google"
-    news_url = "https://gemini.google/jp/release-notes/?hl=ja"
+    base_url = "https://blog.google"
+    rss_url = "https://blog.google/products/gemini/rss/"
+    news_url = "https://blog.google/products/gemini/"
 
     def fetch(self) -> list[Article]:
-        """Fetch latest release notes from Google Gemini."""
+        """Fetch latest articles from Google Gemini blog, trying RSS first."""
+        try:
+            articles = self._fetch_rss(self.rss_url)
+            if articles:
+                logger.info(f"[Google Gemini] Found {len(articles)} articles via RSS")
+                return articles
+        except Exception as e:
+            logger.debug(f"[Google Gemini] RSS failed: {e}, falling back to HTML")
+
         soup = self._get(self.news_url)
         articles = self._parse_html(soup)
-        logger.info(f"[Google Gemini] Found {len(articles)} articles")
+        logger.info(f"[Google Gemini] Found {len(articles)} articles via HTML")
         return articles
 
     def _parse_html(self, soup: BeautifulSoup) -> list[Article]:
-        """Parse release notes entries."""
+        """Parse article entries from blog.google/products/gemini/."""
         articles: list[Article] = []
+        seen_urls: set[str] = set()
 
-        # Release notes are often structured as sections with date headings
-        # Look for heading + body pairs
-        headings = soup.find_all(["h2", "h3"], string=True)
-        for heading in headings[:20]:
+        for a in soup.find_all("a", href=re.compile(r"/products/gemini/")):
+            href = a.get("href", "")
+            # Skip the section index itself
+            if href.rstrip("/") == "/products/gemini":
+                continue
+            url = self._absolute_url(href)
+            if url in seen_urls:
+                continue
+            seen_urls.add(url)
+
+            heading = a.find(["h2", "h3", "h4"]) or a
             title = heading.get_text(strip=True)
-            if not title or len(title) < 4:
+            if not title:
                 continue
 
-            # Collect sibling paragraph text as summary
-            summary_parts: list[str] = []
-            for sibling in heading.find_next_siblings():
-                if sibling.name in ("h2", "h3"):
-                    break
-                text = sibling.get_text(strip=True)
-                if text:
-                    summary_parts.append(text)
-                if len(summary_parts) >= 3:
-                    break
-
-            summary = " ".join(summary_parts)[:300]
-
-            # Build a stable URL using the heading as a fragment
-            fragment = re.sub(r"[^\w\-]", "-", title.lower()).strip("-")
-            url = f"{self.news_url}#{fragment}"
+            parent = a.find_parent(["article", "div", "li"])
+            summary = ""
+            if parent:
+                p = parent.find("p")
+                if p:
+                    summary = p.get_text(strip=True)
 
             articles.append(Article(title=title, url=url, summary=summary, source_name=self.source_name))
 
-        return articles
+        return articles[:20]
