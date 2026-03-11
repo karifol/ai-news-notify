@@ -100,6 +100,20 @@ class BaseCrawler:
         return articles[:20]
 
 
+class ClaudeCodeCrawler(BaseCrawler):
+    """Crawler for Claude Code releases via GitHub Atom feed."""
+
+    source_name = "Claude Code"
+    base_url = "https://github.com"
+    atom_url = "https://github.com/anthropics/claude-code/releases.atom"
+
+    def fetch(self) -> list[Article]:
+        """Fetch latest Claude Code releases from GitHub Atom feed."""
+        articles = self._fetch_rss(self.atom_url)
+        logger.info(f"[Claude Code] Found {len(articles)} releases")
+        return articles
+
+
 class AnthropicCrawler(BaseCrawler):
     """Crawler for Anthropic news, trying RSS then HTML fallback."""
 

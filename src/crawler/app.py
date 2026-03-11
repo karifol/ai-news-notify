@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-from crawlers import AnthropicCrawler, Article, BaseCrawler, GeminiCrawler, OpenAICrawler
+from crawlers import AnthropicCrawler, Article, BaseCrawler, ClaudeCodeCrawler, GeminiCrawler, OpenAICrawler
 from notifier import Notifier
 from translator import Translator
 
@@ -40,6 +40,7 @@ def handler(event: dict, context) -> dict:
         AnthropicCrawler(),
         OpenAICrawler(),
         GeminiCrawler(),
+        ClaudeCodeCrawler(),
     ]
 
     new_articles_by_source: dict[str, list[Article]] = {}
