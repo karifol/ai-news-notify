@@ -1,6 +1,6 @@
 # AI News Notify
 
-Anthropic・OpenAI・Google Gemini の新着情報を毎日メールで受け取るシステム。
+Anthropic・OpenAI・Google Gemini・Claude Code の新着情報を毎日メールで受け取るシステム。
 
 AWS Lambda で各サイトをクロールし、Gemini-2.5-flash で日本語に翻訳して SES でメール送信する。
 
@@ -81,6 +81,7 @@ aws lambda invoke \
 | [Anthropic](https://www.anthropic.com/news) | RSS (`/rss.xml`) → HTML フォールバック |
 | [OpenAI](https://openai.com/blog) | RSS (`/blog/rss.xml`) |
 | [Google Gemini](https://gemini.google/jp/release-notes/?hl=ja) | HTML パース |
+| [Claude Code](https://github.com/anthropics/claude-code/releases) | GitHub Releases Atom フィード |
 
 新着記事の URL を DynamoDB に記録し、30日以内に送信済みの記事は除外する。
 
