@@ -5,6 +5,8 @@ import logging
 import re
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from email.utils import parsedate_to_datetime
 
 import requests
 from bs4 import BeautifulSoup
@@ -67,12 +69,26 @@ class BaseCrawler:
             return href
         return self.base_url.rstrip("/") + "/" + href.lstrip("/")
 
-    def _fetch_rss(self, rss_url: str) -> list[Article]:
-        """Parse RSS 2.0 or Atom feed and return articles."""
+    def _parse_date(self, date_str: str) -> datetime | None:
+        """Parse RFC 2822 or ISO 8601 date string, returning UTC datetime or None."""
+        if not date_str:
+            return None
+        try:
+            return parsedate_to_datetime(date_str).astimezone(timezone.utc)
+        except Exception:
+            pass
+        try:
+            return datetime.fromisoformat(date_str.replace("Z", "+00:00")).astimezone(timezone.utc)
+        except Exception:
+            return None
+
+    def _fetch_rss(self, rss_url: str, max_age_days: int = 7) -> list[Article]:
+        """Parse RSS 2.0 or Atom feed and return articles published within max_age_days."""
         resp = requests.get(rss_url, headers=HEADERS, timeout=TIMEOUT)
         resp.raise_for_status()
         root = ET.fromstring(resp.content)
 
+        cutoff = datetime.now(timezone.utc) - timedelta(days=max_age_days)
         articles: list[Article] = []
 
         # RSS 2.0
@@ -82,8 +98,13 @@ class BaseCrawler:
             summary = (item.findtext("description") or "").strip()
             # Strip HTML tags from description
             summary = re.sub(r"<[^>]+>", "", summary)[:300]
-            if title and link:
-                articles.append(Article(title=title, url=link, summary=summary, source_name=self.source_name))
+            if not (title and link):
+                continue
+            pub_date = self._parse_date(item.findtext("pubDate") or "")
+            if pub_date and pub_date < cutoff:
+                logger.debug(f"Skipping old article ({pub_date.date()}): {title}")
+                continue
+            articles.append(Article(title=title, url=link, summary=summary, source_name=self.source_name))
 
         # Atom
         if not articles:
@@ -94,8 +115,15 @@ class BaseCrawler:
                 link = link_el.get("href", "") if link_el is not None else ""
                 summary = (entry.findtext("atom:summary", "", ns) or "").strip()
                 summary = re.sub(r"<[^>]+>", "", summary)[:300]
-                if title and link:
-                    articles.append(Article(title=title, url=link, summary=summary, source_name=self.source_name))
+                if not (title and link):
+                    continue
+                pub_date = self._parse_date(
+                    entry.findtext("atom:published", "", ns) or entry.findtext("atom:updated", "", ns) or ""
+                )
+                if pub_date and pub_date < cutoff:
+                    logger.debug(f"Skipping old article ({pub_date.date()}): {title}")
+                    continue
+                articles.append(Article(title=title, url=link, summary=summary, source_name=self.source_name))
 
         return articles[:20]
 
